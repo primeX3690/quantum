@@ -1,0 +1,17 @@
+# Python bytecode cache (Faltu automatic files)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Operating System files
+.DS_Store
+Thumbs.db
+
+# Virtual environment (Future ke liye safety)
+.venv/
+venv/
+ENV/
+
+# Local configuration
+config/virtual_hardware.json
