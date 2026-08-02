@@ -214,6 +214,26 @@ def demo_circuit_tracer():
     print()
 
 
+
+
+
+from noise_channel.hardware_profiles import apply_profile_to_density_matrix
+def demo_hardware_profiles():
+    print("=" * 55)
+    print("DEMO 9: CONFIGURABLE HARDWARE NOISE PROFILES")
+    print("=" * 55)
+    qs = QuantumState(n_qubits=2)
+    qs.apply_h(0)
+    qs.apply_cnot(0, 1)
+    rho = statevector_to_density_matrix(qs.state)
+    for profile in ["ideal", "superconducting_typical", "noisy_nisq"]:
+        result = apply_profile_to_density_matrix(rho, profile, 2)
+        print(f"{profile}:", get_probabilities_from_density_matrix(result))
+    print()
+
+
+
+
 if __name__ == "__main__":
     demo_bell_state()
     demo_ghz_state()
@@ -223,6 +243,7 @@ if __name__ == "__main__":
     demo_scaling_and_benchmark()
     demo_error_correction()
     demo_circuit_tracer()
+    demo_hardware_profiles()
     print("=" * 55)
     print("ALL DEMOS PASSED. Built from scratch, zero external quantum SDK.")
     print("=" * 55)
