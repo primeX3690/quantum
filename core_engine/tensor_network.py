@@ -11,6 +11,24 @@ still require large "bond dimension" and lose the advantage. This is
 a genuine physical limitation, not a bug -- it defines WHERE this
 technique helps and where it doesn't.
 
+BUG FIXED (see benchmarks/external_reference_comparison.py for how
+this was caught): the original version only dropped singular values
+when an explicit max_bond_dim was passed. With max_bond_dim=None (the
+default used everywhere, including the earlier "50 qubits -> 6.1KB"
+projection), np.linalg.svd's full_matrices=False mode still returns
+EVERY singular value down to float noise, so the bond dimension
+always grew to the generic worst-case profile 2^min(i, n-i) --
+even for a fully separable, zero-entanglement product state. That
+made the MPS representation LARGER than the plain statevector, not
+smaller, for every circuit actually run through it. The fix below
+truncates singular values that are numerically zero (below
+`svd_cutoff`, relative to the largest singular value at that cut)
+by default, which is the standard, lossless-to-numerical-precision
+practice every real MPS implementation uses. Genuine physically
+motivated truncation (accepting some error to bound bond dimension
+on a highly entangled state) is a separate, explicit choice via
+max_bond_dim -- the two knobs are independent.
+
 Current scope: converts an existing statevector into MPS form
 (verified correct via reconstruction). Applying gates directly to
 MPS tensors -- without ever building the full statevector -- is the
@@ -20,12 +38,21 @@ scaling shown in the memory projections below.
 
 import numpy as np
 
+DEFAULT_SVD_CUTOFF = 1e-10
 
-def statevector_to_mps(state, n_qubits, max_bond_dim=None):
+
+def statevector_to_mps(state, n_qubits, max_bond_dim=None, svd_cutoff=DEFAULT_SVD_CUTOFF):
     """
     Decomposes a full statevector into a chain of MPS tensors using
     sequential SVD (the standard, textbook MPS construction method,
     implemented here from the underlying linear algebra).
+
+    svd_cutoff: singular values smaller than `svd_cutoff * max(S)` at
+    a given cut are dropped -- this is what actually captures "how
+    entangled is this state" as a small bond dimension for
+    low-entanglement circuits. Set svd_cutoff=0 to restore the old
+    (lossless but non-memory-saving) exact-SVD behavior.
+
     Returns a list of tensors, one per qubit.
     """
     tensors = []
@@ -35,6 +62,12 @@ def statevector_to_mps(state, n_qubits, max_bond_dim=None):
     for i in range(n_qubits - 1):
         mat = remaining.reshape(left_dim * 2, -1)
         U, S, Vh = np.linalg.svd(mat, full_matrices=False)
+
+        if svd_cutoff is not None and svd_cutoff > 0 and len(S) > 0:
+            threshold = svd_cutoff * S[0]
+            keep = int(np.sum(S > threshold))
+            keep = max(keep, 1)
+            U, S, Vh = U[:, :keep], S[:keep], Vh[:keep, :]
 
         if max_bond_dim is not None and len(S) > max_bond_dim:
             U = U[:, :max_bond_dim]

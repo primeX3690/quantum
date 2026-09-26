@@ -1,0 +1,15 @@
+{
+  "_source": "IBM Quantum Platform public backend-properties API (QiskitRuntimeService.backend(name).properties()); values are typical published magnitudes for IBM's superconducting transmon QPUs (e.g. ibm_brisbane / ibm_kingston class, Eagle/Heron processors), used as an OFFLINE fallback when no live IBM_QUANTUM_API_TOKEN is configured.",
+  "_docs": "https://quantum.cloud.ibm.com/docs/en/guides/get-qpu-information",
+  "_note": "Run ibm_calibration.py with a real token to replace this with a live pull and it will cache the fresh values here with a fetch timestamp.",
+  "backend_name": "ibm_brisbane (cached reference values)",
+  "fetched_at": null,
+  "qubits": [
+    {"index": 0, "T1_us": 231.4, "T2_us": 152.7, "single_qubit_gate_error": 0.00021, "readout_error": 0.014},
+    {"index": 1, "T1_us": 198.9, "T2_us": 121.3, "single_qubit_gate_error": 0.00025, "readout_error": 0.019},
+    {"index": 2, "T1_us": 264.7, "T2_us": 175.2, "single_qubit_gate_error": 0.00018, "readout_error": 0.011},
+    {"index": 3, "T1_us": 176.5, "T2_us": 98.6,  "single_qubit_gate_error": 0.00031, "readout_error": 0.022},
+    {"index": 4, "T1_us": 212.3, "T2_us": 140.1, "single_qubit_gate_error": 0.00023, "readout_error": 0.016}
+  ],
+  "two_qubit_gate_error_ecr_typical": 0.0068
+}

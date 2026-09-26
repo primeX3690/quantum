@@ -1,0 +1,13 @@
+# Dev/validation-only dependencies -- NOT required to run my_quantum_core
+# itself (see requirements.txt for that, which stays zero-SDK).
+#
+# These are needed only for:
+#   - validation/qiskit_cross_check.py       (cross-checks vs Qiskit)
+#   - noise_channel/ibm_calibration.py       (live IBM calibration pull)
+#   - hardware_validation/run_on_real_ibm_device.py  (real hardware run)
+#
+# Install with: pip install -r requirements-dev.txt
+
+qiskit>=1.0
+qiskit-aer>=0.14
+qiskit-ibm-runtime>=0.45

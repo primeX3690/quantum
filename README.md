@@ -90,6 +90,42 @@ q1: --------O--
 
 ---
 
+## 🔬 External Validation & Real-Hardware Anchoring
+
+Everything above is self-contained and SDK-free. The additions below exist
+for one purpose: **anchor every headline claim to something outside this
+repo** -- an external library, a published formula, or an actual quantum
+computer -- while keeping the production engine untouched (still zero
+Qiskit/Cirq dependency; these live in separate, clearly-marked folders and
+`requirements-dev.txt`).
+
+| # | Claim being anchored | How | Where |
+|---|---|---|---|
+| 1 | "The statevector math is correct" | Build the identical circuit in Qiskit and diff statevectors directly (fidelity + max amplitude error) | `validation/qiskit_cross_check.py` |
+| 2 | "Algorithm coverage goes beyond Grover" | Deutsch-Jozsa (1992), QFT (1994, checked against the closed-form DFT matrix to 1e-15), toy VQE (2014, checked against exact diagonalization to 1e-16) | `algorithms/deutsch_jozsa.py`, `algorithms/qft.py`, `algorithms/vqe_toy.py` |
+| 3 | "The noise model resembles real hardware" | Converts real IBM Quantum T1/T2/gate-error calibration numbers (live API pull or cached fallback) into this engine's own Kraus-operator noise channels via standard open-quantum-systems formulas | `noise_channel/ibm_calibration.py` |
+| 4 | "MPS gives real memory savings" | Anchored against a published external formula (Chatelain et al., arXiv:2602.10830, `M = L·d·χ²`) run on an actual circuit through the general SVD pipeline -- **this also caught and fixed a real bug**: `statevector_to_mps()` wasn't truncating near-zero singular values by default, so it never actually saved memory until now | `benchmarks/external_reference_comparison.py`, fix in `core_engine/tensor_network.py` |
+| 5 | "Validated on a real quantum computer" | Submits a circuit to actual IBM Quantum hardware (free Open Plan, just needs an API token) and compares the measured distribution against this engine's noise-calibrated prediction | `hardware_validation/run_on_real_ibm_device.py` |
+
+Run them:
+```bash
+pip install -r requirements-dev.txt
+PYTHONPATH=. python3 validation/qiskit_cross_check.py
+PYTHONPATH=. python3 benchmarks/external_reference_comparison.py
+PYTHONPATH=. python3 noise_channel/ibm_calibration.py
+export IBM_QUANTUM_API_TOKEN="..."   # from https://quantum.cloud.ibm.com
+PYTHONPATH=. python3 hardware_validation/run_on_real_ibm_device.py
+```
+
+**Honest note on the engine itself, found while building the above:** the
+original gate-application path built full `2^n x 2^n` matrices via Kronecker
+products, which ran out of memory above ~14 qubits on 8GB RAM. Single- and
+two-qubit gates now apply directly to the statevector via tensor reshaping
+(`O(2^n)` instead of `O(4^n)`), which is what makes the qubit counts in the
+MPS benchmark above actually reachable rather than theoretical.
+
+---
+
 ## 🛠️ Tech Stack & Concepts Covered
 - **Language:** Python 3
 - **Mathematics:** Advanced Linear Algebra, Complex Numbers, Kronecker/Tensor Products, Probability Matrices.
@@ -97,3 +133,4 @@ q1: --------O--
 
 ---
 *Developed with 💻 as a deep-tech engineering sandbox.*
+

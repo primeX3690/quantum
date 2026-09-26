@@ -232,6 +232,38 @@ def demo_hardware_profiles():
     print()
 
 
+def demo_deutsch_jozsa():
+    print("=" * 55)
+    print("DEMO 10: DEUTSCH-JOZSA ALGORITHM")
+    print("=" * 55)
+    from algorithms.deutsch_jozsa import demo_both_cases
+    for name, res in demo_both_cases(n_qubits=4).items():
+        print(f"  {name}: verdict={res['verdict']}  p(all-zero)={res['p_all_zero']:.4f}")
+    print()
+
+
+def demo_qft():
+    print("=" * 55)
+    print("DEMO 11: QUANTUM FOURIER TRANSFORM")
+    print("=" * 55)
+    from algorithms.qft import verify_qft_against_definition
+    for n in [2, 3, 4]:
+        result = verify_qft_against_definition(n)
+        print(f"  {n} qubits: max error vs. closed-form DFT matrix = "
+              f"{result['max_abs_error']:.2e}  ({'PASS' if result['passed'] else 'FAIL'})")
+    print()
+
+
+def demo_vqe():
+    print("=" * 55)
+    print("DEMO 12: TOY VQE (2-qubit Pauli-sum Hamiltonian)")
+    print("=" * 55)
+    from algorithms.vqe_toy import run_vqe
+    result = run_vqe()
+    print(f"  VQE energy:            {result['vqe_energy']:.10f}")
+    print(f"  Exact ground state:    {result['exact_ground_state_energy']:.10f}")
+    print(f"  Absolute error:        {result['absolute_error']:.2e}")
+    print()
 
 
 if __name__ == "__main__":
@@ -244,6 +276,17 @@ if __name__ == "__main__":
     demo_error_correction()
     demo_circuit_tracer()
     demo_hardware_profiles()
+    demo_deutsch_jozsa()
+    demo_qft()
+    demo_vqe()
     print("=" * 55)
     print("ALL DEMOS PASSED. Built from scratch, zero external quantum SDK.")
     print("=" * 55)
+    print()
+    print("For the investor-facing validation package (Qiskit cross-check,")
+    print("real IBM hardware calibration noise model, external MPS benchmark")
+    print("anchor, and real-hardware run script), see:")
+    print("  validation/qiskit_cross_check.py")
+    print("  noise_channel/ibm_calibration.py")
+    print("  benchmarks/external_reference_comparison.py")
+    print("  hardware_validation/run_on_real_ibm_device.py")
