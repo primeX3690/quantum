@@ -10,6 +10,7 @@ from core_engine.custom_gates import (
     gate_H, gate_X, gate_Z, gate_CNOT,
     gate_Y, gate_S, gate_S_dag, gate_T,
     gate_RX, gate_RY, gate_RZ, gate_CZ, gate_SWAP, gate_CPHASE,
+    gate_T_dag, gate_SX, gate_P, gate_U3, gate_ISWAP,
 )
 from core_engine.kronecker_solver import (
     expand_gate_to_n_qubits,
@@ -73,6 +74,21 @@ class QuantumState:
     def apply_t(self, qubit):
         self.apply_gate(gate_T(), [qubit])
 
+    def apply_tdg(self, qubit):
+        self.apply_gate(gate_T_dag(), [qubit])
+
+    def apply_sx(self, qubit):
+        self.apply_gate(gate_SX(), [qubit])
+
+    def apply_p(self, qubit, theta):
+        self.apply_gate(gate_P(theta), [qubit])
+
+    def apply_u3(self, qubit, theta, phi, lam):
+        self.apply_gate(gate_U3(theta, phi, lam), [qubit])
+
+    def apply_iswap_general(self, q0, q1):
+        self.state = apply_two_qubit_gate_general(self.state, gate_ISWAP(), q0, q1, self.n_qubits)
+
     def apply_rx(self, qubit, theta):
         self.apply_gate(gate_RX(theta), [qubit])
 
@@ -97,6 +113,34 @@ class QuantumState:
     def apply_cnot_general(self, control, target):
         """CNOT between ANY two qubits (adjacent or not), unlike apply_cnot()."""
         self.state = apply_two_qubit_gate_general(self.state, gate_CNOT(), control, target, self.n_qubits)
+
+    # -- Projective (partial) measurement ------------------------------
+    def probability_of_one(self, qubit):
+        """P(qubit measures 1), without disturbing the state."""
+        t = np.abs(self.state.reshape([2] * self.n_qubits)) ** 2
+        t = np.moveaxis(t, qubit, 0)
+        return float(t[1].sum())
+
+    def measure_qubit(self, qubit, rng=None):
+        """Projectively measure ONE qubit in the computational basis.
+        Collapses and renormalises the state, returns the outcome (0/1).
+        This is what makes ancilla-based syndrome extraction possible:
+        measure the ancillas, leave the data qubits' superposition intact."""
+        rng = rng if rng is not None else np.random
+        p1 = self.probability_of_one(qubit)
+        outcome = 1 if rng.random() < p1 else 0
+        t = self.state.reshape([2] * self.n_qubits).copy()
+        t = np.moveaxis(t, qubit, 0)
+        t[1 - outcome] = 0.0
+        t = np.moveaxis(t, 0, qubit).reshape(-1)
+        self.state = t / np.linalg.norm(t)
+        return outcome
+
+    def reset_qubit(self, qubit, rng=None):
+        """Measure then flip back to |0> if needed (ancilla reuse)."""
+        if self.measure_qubit(qubit, rng):
+            self.apply_x(qubit)
+
 
     def get_statevector(self):
         return self.state.copy()

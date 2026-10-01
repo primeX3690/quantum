@@ -1,6 +1,7 @@
+# Core engine: NumPy is the only hard requirement for the simulators.
 numpy
-scipy
-matplotlib
-psutil
+psutil        # utils/benchmarker.py
+scipy         # used ONLY by algorithms/vqe_toy.py (optimiser)
+# Optional: HTTP API (api/main.py)
 fastapi
 uvicorn

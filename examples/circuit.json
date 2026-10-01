@@ -1,0 +1,1 @@
+{"n_qubits": 3, "gates": [{"gate": "h", "qubits": [0]}, {"gate": "cnot", "qubits": [0, 2]}, {"gate": "rx", "qubits": [1], "params": [1.5708]}]}

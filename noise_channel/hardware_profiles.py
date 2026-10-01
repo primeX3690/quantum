@@ -33,3 +33,10 @@ def apply_profile_to_density_matrix(rho, profile_name, n_qubits):
         rho = bit_flip_channel(rho, profile["bit_flip_p"], q, n_qubits)
         rho = amplitude_damping_channel(rho, profile["damping_gamma"], q, n_qubits)
     return rho
+
+def get_pulse_noise_model(name):
+    """Pulse-derived noise model (T1/T2, drive error, crosstalk) for a profile
+    name. Accepts the profile names used above plus 'superconducting' and
+    'noisy_nisq'. See noise_channel/pulse_noise.py."""
+    from noise_channel.pulse_noise import PulseNoiseModel
+    return PulseNoiseModel.from_profile(name)

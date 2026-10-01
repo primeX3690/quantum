@@ -72,10 +72,10 @@ def test_memory_scaling():
             sv_str = f"{sv_mem/1e15:,.0f} PB (impossible)"
         print(f"{n:<8}{sv_str:<20}{mps_mem:<15,}{sv_mem/mps_mem:,.0f}x")
     print()
-    print("NOTE: This demonstrates the MPS *representation's* efficiency")
-    print("for structured/low-entanglement states. A full gate-application")
-    print("engine (applying gates directly to MPS tensors, never building")
-    print("the full statevector) is the next milestone to make this general.")
+    print("NOTE: This demonstrates the MPS representation's efficiency")
+    print("for structured, low-entanglement states. Direct gate application on MPS")
+    print("tensors (no dense statevector) is implemented in core_engine/mps_engine.py")
+    print("and tested in tests/test_mps.py.")
 
 
 if __name__ == "__main__":

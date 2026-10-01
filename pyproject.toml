@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "my-quantum-core"
+version = "2.0.0"
+description = "From-scratch quantum computing simulator: statevector, MPS, pulse-level noise, syndrome QEC, Shor. NumPy only, no quantum SDK."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "See LICENSE" }
+dependencies = ["numpy", "psutil", "scipy"]
+
+[project.optional-dependencies]
+api = ["fastapi", "uvicorn"]
+test = ["pytest", "httpx"]
+validation = ["qiskit>=1.0", "qiskit-aer>=0.14", "qiskit-ibm-runtime>=0.45"]
+
+[project.scripts]
+quantum-core = "cli:main"
+
+[tool.setuptools]
+py-modules = ["cli"]
+
+[tool.setuptools.packages.find]
+include = ["core_engine*", "algorithms*", "noise_channel*", "utils*", "api*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

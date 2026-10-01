@@ -1,0 +1,5 @@
+# 3-qubit GHZ
+qubits 3
+h 0
+cnot 0 1
+cnot 1 2

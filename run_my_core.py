@@ -266,6 +266,91 @@ def demo_vqe():
     print()
 
 
+def demo_mps_engine():
+    print("=" * 55)
+    print("DEMO 13: MPS ENGINE -- gates applied directly on tensors")
+    print("=" * 55)
+    import time
+    from core_engine.mps_engine import MPSState
+    for n in (20, 50, 100):
+        t0 = time.time()
+        m = MPSState(n)
+        m.h(0)
+        for i in range(n - 1):
+            m.cnot(i, i + 1)
+        dense_gb = (2 ** n) * 16 / 1e9
+        print(f"  GHZ n={n:3d}: {time.time() - t0:.3f}s, MPS memory "
+              f"{m.memory_bytes() / 1024:.1f} KiB (dense vector would need {dense_gb:.3g} GB)")
+    m = MPSState(100)
+    m.h(0)
+    for i in range(99):
+        m.cnot(i, i + 1)
+    print("  100-qubit GHZ samples:", {k[:6] + '..': v for k, v in m.sample(100, seed=1).items()})
+    print(f"  entanglement entropy across the middle cut: {m.entanglement_entropy(50):.3f} bit")
+    print()
+
+
+def demo_syndrome_qec():
+    print("=" * 55)
+    print("DEMO 14: ANCILLA-BASED SYNDROME ERROR CORRECTION")
+    print("=" * 55)
+    import numpy as np
+    from algorithms.error_correction import run_qec_cycle, monte_carlo_logical_error
+    rng = np.random.default_rng(0)
+    for code in ("bit", "phase"):
+        for err in (None, 0, 1, 2):
+            r = run_qec_cycle(theta=1.0, error_qubit=err, code=code, rng=rng)
+            print(f"  {code}-flip code, error on {err}: syndrome={r['syndrome']} "
+                  f"-> fixed qubit {r['corrected_qubit']}, logical fidelity={r['fidelity']:.6f}")
+    print("  (data qubits never measured -- the superposition survives)")
+    for p in (0.05, 0.1, 0.2):
+        r = monte_carlo_logical_error(p, trials=800, seed=1)
+        print(f"  p_physical={p:.2f} -> logical error {r['logical_error_rate']:.4f} "
+              f"(theory 3p^2-2p^3 = {r['theory']:.4f})")
+    print()
+
+
+def demo_shor():
+    print("=" * 55)
+    print("DEMO 15: SHOR'S ALGORITHM (scales past N=15)")
+    print("=" * 55)
+    import time
+    from algorithms.shor import find_factors_via_shor
+    for N in (15, 21, 35, 77, 143):
+        t0 = time.time()
+        f = find_factors_via_shor(N, a=2, verbose=False)
+        print(f"  N={N:4d} -> {f}   ({time.time() - t0:.2f}s)")
+    print()
+
+
+def demo_circuit_builder():
+    print("=" * 55)
+    print("DEMO 16: GENERAL CIRCUIT BUILDER (JSON / text / backends)")
+    print("=" * 55)
+    from core_engine.circuit import QuantumCircuit
+    qc = QuantumCircuit.from_text("qubits 4\nh 0\ncnot 0 3\nrx 1 1.5708\ncphase 1 3 0.7")
+    print(qc)
+    print(qc.draw())
+    print("  statevector:", qc.run(shots=500, backend="statevector", seed=1)["counts"])
+    print("  mps        :", qc.run(shots=500, backend="mps", seed=1)["counts"])
+    print("  JSON:", qc.to_json()[:90] + "...")
+    print()
+
+
+def demo_pulse_noise():
+    print("=" * 55)
+    print("DEMO 17: PULSE-DERIVED NOISE (drive error + crosstalk + T1/T2)")
+    print("=" * 55)
+    from core_engine.circuit import QuantumCircuit
+    from noise_channel.pulse_noise import PulseNoiseModel
+    qc = QuantumCircuit(3).h(0).cnot(0, 1).cnot(1, 2)
+    for prof in ("ideal", "superconducting", "noisy_nisq"):
+        r = qc.run(shots=2000, noise=PulseNoiseModel.from_profile(prof), seed=3)
+        print(f"  {prof:16s} fidelity={r['fidelity_vs_ideal']:.4f} purity={r['purity']:.4f} "
+              f"P(000)+P(111)={(r['counts'].get('000', 0) + r['counts'].get('111', 0)) / 2000:.3f}")
+    print()
+
+
 if __name__ == "__main__":
     demo_bell_state()
     demo_ghz_state()
@@ -279,6 +364,11 @@ if __name__ == "__main__":
     demo_deutsch_jozsa()
     demo_qft()
     demo_vqe()
+    demo_mps_engine()
+    demo_syndrome_qec()
+    demo_shor()
+    demo_circuit_builder()
+    demo_pulse_noise()
     print("=" * 55)
     print("ALL DEMOS PASSED. Built from scratch, zero external quantum SDK.")
     print("=" * 55)

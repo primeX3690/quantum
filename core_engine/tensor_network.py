@@ -29,11 +29,11 @@ motivated truncation (accepting some error to bound bond dimension
 on a highly entangled state) is a separate, explicit choice via
 max_bond_dim -- the two knobs are independent.
 
-Current scope: converts an existing statevector into MPS form
-(verified correct via reconstruction). Applying gates directly to
-MPS tensors -- without ever building the full statevector -- is the
-next engineering milestone; that is what unlocks the real 50+ qubit
-scaling shown in the memory projections below.
+Scope of THIS module: converts an existing statevector into MPS form
+(verified by reconstruction) and reports memory. Gates applied directly
+on MPS tensors -- never building the full statevector -- now live in
+core_engine/mps_engine.py (MPSState), which is what unlocks 50-100+
+qubit scaling for low-entanglement circuits.
 """
 
 import numpy as np

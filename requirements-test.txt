@@ -1,0 +1,3 @@
+# Test-only dependencies (run_tests.py needs none of these)
+pytest
+httpx

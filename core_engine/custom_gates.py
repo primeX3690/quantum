@@ -114,3 +114,47 @@ def multi_controlled_z_oracle(marked_indices, n_qubits):
     for idx in marked_indices:
         oracle[idx, idx] = -1
     return oracle
+
+
+# ---------------------------------------------------------------------------
+# More gates: T-dagger, sqrt(X), phase, general U3, iSWAP, Toffoli.
+# ---------------------------------------------------------------------------
+
+def gate_T_dag():
+    return np.array([[1, 0], [0, np.exp(-1j * np.pi / 4)]], dtype=complex)
+
+
+def gate_SX():
+    """Square root of X (native gate on many superconducting chips)."""
+    return 0.5 * np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]], dtype=complex)
+
+
+def gate_P(theta):
+    """Phase gate diag(1, e^{i theta})."""
+    return np.array([[1, 0], [0, np.exp(1j * theta)]], dtype=complex)
+
+
+def gate_U3(theta, phi, lam):
+    """General single-qubit unitary (any 1-qubit gate up to global phase)."""
+    c, s = np.cos(theta / 2), np.sin(theta / 2)
+    return np.array([[c, -np.exp(1j * lam) * s],
+                     [np.exp(1j * phi) * s, np.exp(1j * (phi + lam)) * c]], dtype=complex)
+
+
+def gate_ISWAP():
+    return np.array([
+        [1, 0, 0, 0],
+        [0, 0, 1j, 0],
+        [0, 1j, 0, 0],
+        [0, 0, 0, 1],
+    ], dtype=complex)
+
+
+def gate_CCX():
+    """Toffoli (CCNOT) 8x8 matrix, for reference/tests. Inside circuits it is
+    expanded into 1- and 2-qubit gates so every backend supports it."""
+    U = np.eye(8, dtype=complex)
+    U[6, 6] = U[7, 7] = 0
+    U[6, 7] = U[7, 6] = 1
+    return U
+
